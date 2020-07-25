@@ -14,6 +14,10 @@ public final class App {
 	public static void main(String[] args) {
 		Config config = new Config(args);
 
+		CalendarDownloader downloader = new CalendarDownloader(
+			config.formatUserAgent(getVersion()), config.downloadTimeout
+		);
+
 		Javalin app = Javalin.create((appConfig) -> {
 			appConfig.showJavalinBanner = false;
 			appConfig.enableCorsForAllOrigins();
@@ -25,7 +29,10 @@ public final class App {
 			try { month = MonthExpression.parse(ctx.pathParam("month")); }
 			catch (InvalidMonthExpressionException e) { throw new BadRequestResponse(e.getMessage()); }
 
-			ctx.json(month);
+			ctx.result(
+				downloader.downloadCalendar(config.formatURL(month.toString()))
+					.thenApply((cal) -> ctx.json(cal))
+			);
 		});
 
 		app.start(config.apiPort);

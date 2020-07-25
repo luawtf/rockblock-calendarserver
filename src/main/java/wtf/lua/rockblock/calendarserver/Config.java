@@ -11,9 +11,7 @@ enum LongName {
 	API_PORT("api-port"),
 	API_CACHE("api-cache"),
 
-	DOWNLOAD_RETRIES("download-retries"),
 	DOWNLOAD_TIMEOUT("download-timeout"),
-	DOWNLOAD_MAXSIZE("download-maxsize"),
 
 	TEMPLATE_URL("template-url"),
 	TEMPLATE_AGENT("template-agent");
@@ -32,12 +30,8 @@ public final class Config {
 	/** API cache time-to-live (in milliseconds) */
 	public long apiCacheTTL = 3600000; // 30 minutes
 
-	/** Number of retries before considering a download as failed */
-	public int downloadRetries = 3;
 	/** Timeout before retrying a download */
 	public long downloadTimeout = 30000; // 30 seconds
-	/** Maximum size in bytes of a chunk of iCalendar data */
-	public long downloadMaxSize = 104857600; // 10 MiB
 
 	/** Template URL for downloading iCalendar data */
 	public String templateURL = "https://westvancouverschools.ca/rockridge-secondary/events/$/?ical=1";
@@ -72,9 +66,7 @@ public final class Config {
 		addOption(opts, "d", LongName.DEBUG, "enable debug logging output");
 		addOption(opts, "p", LongName.API_PORT, "port number to listen on");
 		addOption(opts, "c", LongName.API_CACHE, "api cache time-to-live (ms)");
-		addOption(opts, "r", LongName.DOWNLOAD_RETRIES, "number of retries before considering a download failed");
 		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT, "timeout before retrying a download (ms)");
-		addOption(opts, "m", LongName.DOWNLOAD_MAXSIZE, "maximum size in bytes of a chunk of iCalendar data");
 		addOption(opts, "u", LongName.TEMPLATE_URL, "template URL for downloading iCalendar data");
 		addOption(opts, "a", LongName.TEMPLATE_AGENT, "template for the UserAgent header");
 		return opts;
@@ -139,9 +131,7 @@ public final class Config {
 			debug			= getBoolean(cmd, LongName.DEBUG, debug);
 			apiPort			= getInt(cmd, LongName.API_PORT, apiPort);
 			apiCacheTTL		= getLong(cmd, LongName.API_CACHE, apiCacheTTL);
-			downloadRetries		= getInt(cmd, LongName.DOWNLOAD_RETRIES, downloadRetries);
 			downloadTimeout		= getLong(cmd, LongName.DOWNLOAD_TIMEOUT, downloadTimeout);
-			downloadMaxSize		= getLong(cmd, LongName.DOWNLOAD_MAXSIZE, downloadMaxSize);
 			templateURL		= getString(cmd, LongName.TEMPLATE_URL, templateURL);
 			templateUserAgent	= getString(cmd, LongName.TEMPLATE_AGENT, templateUserAgent);
 		} catch (ParseException e) {
