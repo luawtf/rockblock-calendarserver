@@ -1,6 +1,7 @@
 package wtf.lua.rockblock.calendarserver;
 
-import io.javalin.Javalin;
+import io.javalin.*;
+import io.javalin.http.*;
 
 /**
  * App provides the program entrypoint and some package information utilities
@@ -20,7 +21,11 @@ public final class App {
 		});
 
 		app.get("/:month", (ctx) -> {
-			ctx.json(config);
+			MonthExpression month;
+			try { month = MonthExpression.parse(ctx.pathParam("month")); }
+			catch (InvalidMonthExpressionException e) { throw new BadRequestResponse(e.getMessage()); }
+
+			ctx.json(month);
 		});
 
 		app.start(config.apiPort);
