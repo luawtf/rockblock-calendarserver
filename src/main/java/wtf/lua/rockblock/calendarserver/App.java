@@ -14,9 +14,8 @@ public final class App {
 	public static void main(String[] args) {
 		var config = new Config(args);
 
-		var downloader = new CalendarDownloader(
-			config.formatUserAgent(getVersion()), config.downloadTimeout
-		);
+		var downloader = new CalendarDownloader(config);
+		var tracker = new CalendarTracker(config, downloader);
 
 		var app = Javalin.create((appConfig) -> {
 			appConfig.showJavalinBanner = false;
@@ -29,11 +28,11 @@ public final class App {
 			try { month = MonthExpression.parse(ctx.pathParam("month")); }
 			catch (InvalidMonthExpressionException e) { throw new BadRequestResponse(e.getMessage()); }
 
-			ctx.result(
-				downloader.downloadCalendar(config.formatURL(month.toString()))
-					.thenApply(CalendarInterpreter::interpret)
-					.thenApply(ctx::json)
-			);
+			ctx.header("X-RockBlock-CalendarServer", getTitle());
+			ctx.header("X-RockBlock-CalendarServerVersion", getVersion());
+
+			ctx.contentType("application/json");
+			ctx.result(tracker.getCalendarJSON(month));
 		});
 
 		app.start(config.apiPort);

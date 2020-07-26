@@ -18,6 +18,9 @@ import biweekly.*;
 public final class CalendarDownloader {
 	private static final Logger log = LoggerFactory.getLogger(CalendarDownloader.class);
 
+	/** Config instance that provides userAgent and timeout */
+	public final Config config;
+
 	/** UserAgent string to use when making requests */
 	public final String userAgent;
 
@@ -30,16 +33,18 @@ public final class CalendarDownloader {
 	public final HttpClient client;
 
 	/**
-	 * @param userAgent UserAgent string
-	 * @param timeout Timeout in milliseconds
+	 * Instantiate a new CalendarDownloader using settings from a Config
+	 * @param config Config that provides this CalendarDownloader's userAgent and timeout
 	 */
-	public CalendarDownloader(String userAgent, long timeout) {
-		this.userAgent = userAgent;
+	public CalendarDownloader(Config config) {
+		this.config = config;
 
-		this.timeout = timeout;
-		this.timeoutDuration = Duration.ofMillis(timeout);
+		userAgent = config.formatUserAgent(App.getVersion());
 
-		this.client = HttpClient.newBuilder()
+		timeout = config.downloadTimeout;
+		timeoutDuration = Duration.ofMillis(timeout);
+
+		client = HttpClient.newBuilder()
 			.version(Version.HTTP_1_1)
 			.followRedirects(Redirect.NORMAL)
 			.connectTimeout(timeoutDuration)

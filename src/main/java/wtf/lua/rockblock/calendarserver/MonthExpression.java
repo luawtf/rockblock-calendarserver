@@ -22,10 +22,8 @@ public final class MonthExpression {
 	/** Month number (1-12) */
 	public final int month;
 
-	/** Convert this expression back into a string */
-	public String toString() {
-		return String.format("%04d-%02d", year, month);
-	}
+	/** Expression as a string (ex 2020-08) */
+	public final String value;
 
 	/**
 	 * Instantiate a new MonthExpression, arguments will be checked for validity
@@ -41,6 +39,8 @@ public final class MonthExpression {
 
 		this.year = year;
 		this.month = month;
+
+		value = String.format("%04d-%02d", year, month);
 	}
 
 	private static final Pattern expressionPattern = Pattern.compile("^\\d\\d\\d\\d-\\d\\d$");
