@@ -1,27 +1,59 @@
 package wtf.lua.rockblock.calendarserver;
 
 import org.apache.commons.cli.*;
+import org.slf4j.*;
 
+/**
+ * LongName provides an enumeration of all long-name option strings
+ */
 enum LongName {
+	/** Long name for option --help */
 	HELP("help"),
+	/** Long name for option --version */
 	VERSION("version"),
 
+	/** Long name for option --debug */
 	DEBUG("debug"),
 
+	/** Long name for option --port */
 	API_PORT("api-port"),
+	/** Long name for option --cache */
 	API_CACHE("api-cache"),
 
+	/** Long name for option --download-timeout */
 	DOWNLOAD_TIMEOUT("download-timeout"),
 
+	/** Long name for option --template-url */
 	TEMPLATE_URL("template-url"),
+	/** Long name for option --template-agent */
 	TEMPLATE_AGENT("template-agent");
 
+	/** Entry's string value */
 	private final String value;
-	private LongName(String value) { this.value = value; }
-	public String toString() { return value; }
+
+	/**
+	 * Create a new LongName instance
+	 * @param value String value, used as the long name for this option
+	 */
+	private LongName(String value) {
+		this.value = value;
+	}
+
+	/**
+	 * Get this entry's value
+	 * @return String value of this enumeration entry
+	 */
+	public String toString() {
+		return value;
+	}
 }
 
+/**
+ * Config provides various application configuration settings and command-line parsing tools for setting these options from the command line
+ */
 public final class Config {
+	private static final Logger log = LoggerFactory.getLogger(Config.class);
+
 	/** Enable debug logging output? */
 	public boolean debug = false;
 
@@ -33,42 +65,73 @@ public final class Config {
 	/** Timeout before retrying a download */
 	public long downloadTimeout = 30000; // 30 seconds
 
-	/** Template URL for downloading iCalendar data */
+	/** URL template to download iCalendar files from, '$' will be replaced with the requested month (ex "2020-12") */
 	public String templateURL = "https://westvancouverschools.ca/rockridge-secondary/events/$/?ical=1";
-	/** Template URL for the UserAgent header when downloading iCalendar data */
+	/** UserAgent template, sent as the User-Agent header when downloading iCalendar files, '$' will be replaced with the current CalendarServer version */
 	public String templateUserAgent = "RockBlock-CalendarServer/$ (https://github.com/luawtf/rockblock-calendarserver)";
 
 	/**
-	 * Generate a URL from the URL template
-	 * @param val Value to format the template with
-	 * @return Formatted URL string
+	 * Format templateURL with a month expression string
+	 * @param val Month expression string to format template with
+	 * @return Formatted URL string with provided month
 	 */
-	public String formatURL(String val) { return templateURL.replace("$", val); }
+	public String formatURL(String val) {
+		return templateURL.replace("$", val);
+	}
 	/**
-	 * Generate a UserAgent from the UserAgent template
-	 * @param val Value to format the template with
-	 * @return Formatted UserAgent string
+	 * Format templateUserAgent with the app's version
+	 * @param val Version string to format template with
+	 * @return Formatted User-Agent with provided version
 	 */
 	public String formatUserAgent(String val) { return templateUserAgent.replace("$", val); }
 
 	/**
-	 * Instantiate a Config with default values
+	 * Create a new Config instance with default field values
 	 */
 	public Config() {}
+
+	/**
+	 * Create a new Config instance using command-line arguments
+	 * NOTE: This will call System.exit(0) if --help/--version are passed
+	 * @param args Array of argument strings passed to this program
+	 */
+	public Config(String[] args) {
+		try {
+			Options opts = makeOptions();
+			CommandLineParser parser = new DefaultParser();
+			CommandLine cmd = parser.parse(opts, args);
+
+			// Handle --help and --version
+			if (getBoolean(cmd, LongName.HELP, false))
+				printHelp(opts);
+			if (getBoolean(cmd, LongName.VERSION, false))
+				printVersion();
+
+			// Update all config fields
+			debug			= getBoolean(cmd,	LongName.DEBUG,			debug);
+			apiPort			= getInt(cmd,		LongName.API_PORT,		apiPort);
+			apiCacheTTL		= getLong(cmd,		LongName.API_CACHE,		apiCacheTTL);
+			downloadTimeout		= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,	downloadTimeout);
+			templateURL		= getString(cmd,	LongName.TEMPLATE_URL,		templateURL);
+			templateUserAgent	= getString(cmd,	LongName.TEMPLATE_AGENT,	templateUserAgent);
+		} catch (ParseException e) {
+			log.warn("Failed to parse command-line arguments:", e);
+		}
+	}
 
 	private void addOption(Options opts, String shortName, LongName longName, String description) {
 		opts.addOption(new Option(shortName, longName.toString(), false, description));
 	}
 	private Options makeOptions() {
 		Options opts = new Options();
-		addOption(opts, "h", LongName.HELP, "display program help page");
-		addOption(opts, "v", LongName.VERSION, "display program version");
-		addOption(opts, "d", LongName.DEBUG, "enable debug logging output");
-		addOption(opts, "p", LongName.API_PORT, "port number to listen on");
-		addOption(opts, "c", LongName.API_CACHE, "api cache time-to-live (ms)");
-		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT, "timeout before retrying a download (ms)");
-		addOption(opts, "u", LongName.TEMPLATE_URL, "template URL for downloading iCalendar data");
-		addOption(opts, "a", LongName.TEMPLATE_AGENT, "template for the UserAgent header");
+		addOption(opts, "h", LongName.HELP,		"display program help page");
+		addOption(opts, "v", LongName.VERSION,		"display program version");
+		addOption(opts, "d", LongName.DEBUG,		"enable debug logging output");
+		addOption(opts, "p", LongName.API_PORT,		"port number to listen on");
+		addOption(opts, "c", LongName.API_CACHE,	"api cache time-to-live (ms)");
+		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,	"timeout before retrying a download (ms)");
+		addOption(opts, "u", LongName.TEMPLATE_URL,	"template URL for downloading iCalendar data");
+		addOption(opts, "a", LongName.TEMPLATE_AGENT,	"template for the UserAgent header");
 		return opts;
 	}
 
@@ -111,31 +174,5 @@ public final class Config {
 	}
 	private int getInt(CommandLine cmd, LongName optionName, int defaultValue) {
 		return (int)getLong(cmd, optionName, (long)defaultValue);
-	}
-
-	/**
-	 * Instantiate a Config from command-line arguments
-	 * NOTE: This will System.exit() if the help text is requested or the parsing fails
-	 */
-	public Config(String[] args) {
-		try {
-			Options opts = makeOptions();
-			CommandLineParser parser = new DefaultParser();
-			CommandLine cmd = parser.parse(opts, args);
-
-			if (getBoolean(cmd, LongName.HELP, false))
-				printHelp(opts);
-			if (getBoolean(cmd, LongName.VERSION, false))
-				printVersion();
-
-			debug			= getBoolean(cmd, LongName.DEBUG, debug);
-			apiPort			= getInt(cmd, LongName.API_PORT, apiPort);
-			apiCacheTTL		= getLong(cmd, LongName.API_CACHE, apiCacheTTL);
-			downloadTimeout		= getLong(cmd, LongName.DOWNLOAD_TIMEOUT, downloadTimeout);
-			templateURL		= getString(cmd, LongName.TEMPLATE_URL, templateURL);
-			templateUserAgent	= getString(cmd, LongName.TEMPLATE_AGENT, templateUserAgent);
-		} catch (ParseException e) {
-			// Squelch it!
-		}
 	}
 }
