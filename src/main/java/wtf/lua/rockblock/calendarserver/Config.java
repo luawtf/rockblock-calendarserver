@@ -12,9 +12,6 @@ enum LongName {
 	/** Long name for option --version */
 	VERSION("version"),
 
-	/** Long name for option --debug */
-	DEBUG("debug"),
-
 	/** Long name for option --port */
 	API_PORT("api-port"),
 	/** Long name for option --cache */
@@ -53,9 +50,6 @@ enum LongName {
  */
 public final class Config {
 	private static final Logger log = LoggerFactory.getLogger(Config.class);
-
-	/** Enable debug logging output? */
-	public boolean debug = false;
 
 	/** Port number to listen on */
 	public int apiPort = 2000;
@@ -108,7 +102,6 @@ public final class Config {
 				printVersion();
 
 			// Update all config fields
-			debug			= getBoolean(cmd,	LongName.DEBUG,			debug);
 			apiPort			= getInt(cmd,		LongName.API_PORT,		apiPort);
 			apiCacheTTL		= getLong(cmd,		LongName.API_CACHE,		apiCacheTTL);
 			downloadTimeout		= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,	downloadTimeout);
@@ -126,7 +119,6 @@ public final class Config {
 		Options opts = new Options();
 		addOption(opts, "h", LongName.HELP,		"display program help page");
 		addOption(opts, "v", LongName.VERSION,		"display program version");
-		addOption(opts, "d", LongName.DEBUG,		"enable debug logging output");
 		addOption(opts, "p", LongName.API_PORT,		"port number to listen on");
 		addOption(opts, "c", LongName.API_CACHE,	"api cache time-to-live (ms)");
 		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,	"timeout before retrying a download (ms)");
