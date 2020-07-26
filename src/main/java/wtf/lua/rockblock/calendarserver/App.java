@@ -12,13 +12,13 @@ public final class App {
 	 * @param args Command-line arguments
 	 */
 	public static void main(String[] args) {
-		Config config = new Config(args);
+		var config = new Config(args);
 
-		CalendarDownloader downloader = new CalendarDownloader(
+		var downloader = new CalendarDownloader(
 			config.formatUserAgent(getVersion()), config.downloadTimeout
 		);
 
-		Javalin app = Javalin.create((appConfig) -> {
+		var app = Javalin.create((appConfig) -> {
 			appConfig.showJavalinBanner = false;
 			appConfig.enableCorsForAllOrigins();
 			if (config.debug) appConfig.enableDevLogging();
@@ -31,7 +31,8 @@ public final class App {
 
 			ctx.result(
 				downloader.downloadCalendar(config.formatURL(month.toString()))
-					.thenApply((cal) -> ctx.json(cal))
+					.thenApply(CalendarInterpreter::interpret)
+					.thenApply(ctx::json)
 			);
 		});
 
@@ -42,10 +43,18 @@ public final class App {
 	 * Retrieve the program title
 	 * @return Program title
 	 */
-	public static String getTitle() { return App.class.getPackage().getImplementationTitle(); }
+	public static String getTitle() {
+		var str = App.class.getPackage().getImplementationTitle();
+		if (str != null) return str;
+		else return "calendarserver";
+	}
 	/**
 	 * Retrieve the program version
 	 * @return Program version
 	 */
-	public static String getVersion() { return App.class.getPackage().getImplementationVersion(); }
+	public static String getVersion() {
+		var str = App.class.getPackage().getImplementationVersion();
+		if (str != null) return str;
+		else return "unknown";
+	}
 }
