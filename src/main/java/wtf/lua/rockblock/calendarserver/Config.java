@@ -19,6 +19,8 @@ enum LongName {
 
 	/** Long name for option --calculate-duration */
 	INTERPRET_CALCULATE_DURATION("calculate-duration"),
+	/** Long name for option --timetable-regex */
+	INTERPRET_TIMETABLE_REGEX("timetable-regex"),
 
 	/** Long name for option --download-timeout */
 	DOWNLOAD_TIMEOUT("download-timeout"),
@@ -61,6 +63,8 @@ public final class Config {
 
 	/** Automatically fill in Event.duration? */
 	public boolean interpretCalculateDuration = true;
+	/** Regular expression used for matching and flagging events as timetable events (leave empty for no flagging) */
+	public String interpretTimetableRegex = "[12](\s*-\s*|\s+)[1234]{4}[xX]?";
 
 	/** Timeout before retrying a download */
 	public long downloadTimeout = 30000; // 30 seconds
@@ -111,6 +115,7 @@ public final class Config {
 			apiPort				= getInt(cmd,		LongName.API_PORT,			apiPort);
 			apiCacheTTL			= getLong(cmd,		LongName.API_CACHE,			apiCacheTTL);
 			interpretCalculateDuration 	= getBoolean(cmd, 	LongName.INTERPRET_CALCULATE_DURATION,	interpretCalculateDuration);
+			interpretTimetableRegex		= getString(cmd,	LongName.INTERPRET_TIMETABLE_REGEX,	interpretTimetableRegex);
 			downloadTimeout			= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,		downloadTimeout);
 			templateURL			= getString(cmd,	LongName.TEMPLATE_URL,			templateURL);
 			templateUserAgent		= getString(cmd,	LongName.TEMPLATE_AGENT,		templateUserAgent);
@@ -120,7 +125,7 @@ public final class Config {
 	}
 
 	private void addOption(Options opts, String shortName, LongName longName, String description) {
-		opts.addOption(new Option(shortName, longName.toString(), false, description));
+		opts.addOption(new Option(shortName, longName.toString(), true, description));
 	}
 	private Options makeOptions() {
 		Options opts = new Options();
@@ -129,6 +134,7 @@ public final class Config {
 		addOption(opts, "p", LongName.API_PORT,				"port number to listen on");
 		addOption(opts, "c", LongName.API_CACHE,			"api cache time-to-live (ms)");
 		addOption(opts, "d", LongName.INTERPRET_CALCULATE_DURATION,	"automatically fill in duration field of events");
+		addOption(opts, "r", LongName.INTERPRET_TIMETABLE_REGEX,	"regex that matches timetable events (can be blank)");
 		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,			"timeout before retrying a download (ms)");
 		addOption(opts, "u", LongName.TEMPLATE_URL,			"template URL for downloading iCalendar data");
 		addOption(opts, "a", LongName.TEMPLATE_AGENT,			"template for the UserAgent header");

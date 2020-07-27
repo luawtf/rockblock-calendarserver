@@ -2,6 +2,7 @@ package wtf.lua.rockblock.calendarserver;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
@@ -14,10 +15,16 @@ import biweekly.util.*;
 public final class Interpreter {
 	public final boolean calculateDuration;
 
+	public final Pattern timetablePattern;
+
 	private final ObjectMapper mapper;
 
 	public Interpreter(Config config) {
 		calculateDuration = config.interpretCalculateDuration;
+
+		if (!config.interpretTimetableRegex.isBlank()) {
+			timetablePattern = Pattern.compile(config.interpretTimetableRegex);
+		} else timetablePattern = null;
 
 		mapper = new ObjectMapper();
 	}
@@ -70,7 +77,12 @@ public final class Interpreter {
 
 		var location = getString(vevent.getLocation());
 
+		var timetable = summary != null &&
+			timetablePattern != null &&
+			timetablePattern.matcher(summary).find();
+
 		return new Event(
+			timetable,
 			uid, url,
 			created, lastModified,
 			start, end, duration,

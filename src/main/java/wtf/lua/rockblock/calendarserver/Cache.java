@@ -72,7 +72,7 @@ public final class Cache {
 			})
 			.handle((json, e) -> {
 				if (e != null) {
-					log.error("Download of {} failed:", monthValue, e);
+					log.error("Download of {} failed: {}", monthValue, e.getMessage());
 					cacheMap.values().remove(entry);
 					throw wrapThrowable(e);
 				} else {
