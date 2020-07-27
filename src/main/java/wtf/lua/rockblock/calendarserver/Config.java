@@ -17,6 +17,9 @@ enum LongName {
 	/** Long name for option --cache */
 	API_CACHE("api-cache"),
 
+	/** Long name for option --calculate-duration */
+	INTERPRET_CALCULATE_DURATION("calculate-duration"),
+
 	/** Long name for option --download-timeout */
 	DOWNLOAD_TIMEOUT("download-timeout"),
 
@@ -55,6 +58,9 @@ public final class Config {
 	public int apiPort = 2000;
 	/** API cache time-to-live (in milliseconds) */
 	public long apiCacheTTL = 3600000; // 30 minutes
+
+	/** Automatically fill in Event.duration? */
+	public boolean interpretCalculateDuration = true;
 
 	/** Timeout before retrying a download */
 	public long downloadTimeout = 30000; // 30 seconds
@@ -102,11 +108,12 @@ public final class Config {
 				printVersion();
 
 			// Update all config fields
-			apiPort			= getInt(cmd,		LongName.API_PORT,		apiPort);
-			apiCacheTTL		= getLong(cmd,		LongName.API_CACHE,		apiCacheTTL);
-			downloadTimeout		= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,	downloadTimeout);
-			templateURL		= getString(cmd,	LongName.TEMPLATE_URL,		templateURL);
-			templateUserAgent	= getString(cmd,	LongName.TEMPLATE_AGENT,	templateUserAgent);
+			apiPort				= getInt(cmd,		LongName.API_PORT,			apiPort);
+			apiCacheTTL			= getLong(cmd,		LongName.API_CACHE,			apiCacheTTL);
+			interpretCalculateDuration 	= getBoolean(cmd, 	LongName.INTERPRET_CALCULATE_DURATION,	interpretCalculateDuration);
+			downloadTimeout			= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,		downloadTimeout);
+			templateURL			= getString(cmd,	LongName.TEMPLATE_URL,			templateURL);
+			templateUserAgent		= getString(cmd,	LongName.TEMPLATE_AGENT,		templateUserAgent);
 		} catch (ParseException e) {
 			log.warn("Failed to parse command-line arguments:", e);
 		}
@@ -117,13 +124,14 @@ public final class Config {
 	}
 	private Options makeOptions() {
 		Options opts = new Options();
-		addOption(opts, "h", LongName.HELP,		"display program help page");
-		addOption(opts, "v", LongName.VERSION,		"display program version");
-		addOption(opts, "p", LongName.API_PORT,		"port number to listen on");
-		addOption(opts, "c", LongName.API_CACHE,	"api cache time-to-live (ms)");
-		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,	"timeout before retrying a download (ms)");
-		addOption(opts, "u", LongName.TEMPLATE_URL,	"template URL for downloading iCalendar data");
-		addOption(opts, "a", LongName.TEMPLATE_AGENT,	"template for the UserAgent header");
+		addOption(opts, "h", LongName.HELP,				"display program help page");
+		addOption(opts, "v", LongName.VERSION,				"display program version");
+		addOption(opts, "p", LongName.API_PORT,				"port number to listen on");
+		addOption(opts, "c", LongName.API_CACHE,			"api cache time-to-live (ms)");
+		addOption(opts, "d", LongName.INTERPRET_CALCULATE_DURATION,	"automatically fill in duration field of events");
+		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,			"timeout before retrying a download (ms)");
+		addOption(opts, "u", LongName.TEMPLATE_URL,			"template URL for downloading iCalendar data");
+		addOption(opts, "a", LongName.TEMPLATE_AGENT,			"template for the UserAgent header");
 		return opts;
 	}
 

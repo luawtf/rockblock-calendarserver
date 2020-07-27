@@ -1,5 +1,8 @@
 package wtf.lua.rockblock.calendarserver;
 
+import java.io.IOException;
+import java.util.concurrent.CompletionException;
+
 import org.slf4j.*;
 
 import io.javalin.*;
@@ -21,6 +24,9 @@ public final class App {
 		// Generate configuration from input arguments
 		var config = new Config(args);
 
+		// Create the Cache which provides all calendar downloading/parsing/serializing/caching functionality
+		var cache = new Cache(config);
+
 		// Create Javalin instance
 		var app = Javalin.create((appConfig) -> {
 			appConfig.showJavalinBanner = false;
@@ -36,23 +42,30 @@ public final class App {
 
 			log.debug("Requested month {}", month.value);
 
-			// ctx.contentType("application/json");
-			ctx.json(month);
+			ctx.contentType("application/json");
+			ctx.result(cache.request(month));
 		});
 
 		// Handle HTTP and other exceptions
 		app.exception(HttpResponseException.class, (e, ctx) -> {
 			var status = e.getStatus();
 			var message = e.getMessage();
+			if (message == null)
+				message = e.toString();
+
 			ctx.contentType("text/plain").status(status).result(message);
 
 			var url = ctx.fullUrl();
 			log.debug("HttpResponseException thrown while running handlers for \"{}\":", url, e);
 		});
 		app.exception(Exception.class, (e, ctx) -> {
+			var message = e.getMessage();
+			if (message == null)
+				message = e.toString();
+
 			ctx.status(500);
 			ctx.contentType("text/plain");
-			ctx.result(e.getMessage());
+			ctx.result(message);
 
 			var url = ctx.fullUrl();
 			log.error("Error thrown while running handlers for \"{}\":", url, e);
