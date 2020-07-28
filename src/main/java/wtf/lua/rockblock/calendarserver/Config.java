@@ -87,7 +87,9 @@ public final class Config {
 	 * @param val Version string to format template with
 	 * @return Formatted User-Agent with provided version
 	 */
-	public String formatUserAgent(String val) { return templateUserAgent.replace("$", val); }
+	public String formatUserAgent(String val) {
+		return templateUserAgent.replace("$", val);
+	}
 
 	/**
 	 * Create a new Config instance with default field values

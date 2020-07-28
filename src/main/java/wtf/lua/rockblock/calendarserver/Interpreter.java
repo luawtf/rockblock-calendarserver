@@ -12,13 +12,21 @@ import biweekly.component.*;
 import biweekly.property.*;
 import biweekly.util.*;
 
+/**
+ * Interpreter provides methods for parsing raw iCalendar data (from InputStreams) into JSON strings
+ */
 public final class Interpreter {
+	/** Should event durations be calculated if they are not provided? Set from config.interpretCalculateDuration */
 	public final boolean calculateDuration;
-
+	/** Pattern that matches events that are timetable events, possibly null, set from config.interpretTimetableRegex */
 	public final Pattern timetablePattern;
 
 	private final ObjectMapper mapper;
 
+	/**
+	 * Create a new Interpreter instance using configuration values from the passed config
+	 * @param config Config object to get calculateDuration / timetablePattern from
+	 */
 	public Interpreter(Config config) {
 		calculateDuration = config.interpretCalculateDuration;
 
@@ -29,6 +37,12 @@ public final class Interpreter {
 		mapper = new ObjectMapper();
 	}
 
+	/**
+	 * Parse the data in an InputStream as iCalendar data and generate a JSON representation
+	 * @param stream InputStream with iCalendar data
+	 * @return Event[] as JSON
+	 * @throws IOException If parsing iCalendar data failed or JSON serialization failed
+	 */
 	public String interpret(InputStream stream) throws IOException {
 		var cal = parse(stream);
 		var json = serialize(cal);
