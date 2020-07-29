@@ -64,7 +64,7 @@ public final class Config {
 	/** Automatically fill in Event.duration? */
 	public boolean interpretCalculateDuration = true;
 	/** Regular expression used for matching and flagging events as timetable events (leave empty for no flagging) */
-	public String interpretTimetableRegex = "[12](\s*-\s*|\s+)[1234]{4}[xX]?";
+	public String interpretTimetableRegex = "[12](\\s*-\\s*|\\s+)[1234]{4}[xX]?";
 
 	/** Timeout before retrying a download */
 	public long downloadTimeout = 30000; // 30 seconds
@@ -126,20 +126,20 @@ public final class Config {
 		}
 	}
 
-	private void addOption(Options opts, String shortName, LongName longName, String description) {
-		opts.addOption(new Option(shortName, longName.toString(), true, description));
+	private void addOption(Options opts, boolean hasParameter, String shortName, LongName longName, String description) {
+		opts.addOption(new Option(shortName, longName.toString(), hasParameter, description));
 	}
 	private Options makeOptions() {
 		Options opts = new Options();
-		addOption(opts, "h", LongName.HELP,				"display program help page");
-		addOption(opts, "v", LongName.VERSION,				"display program version");
-		addOption(opts, "p", LongName.API_PORT,				"port number to listen on");
-		addOption(opts, "c", LongName.API_CACHE,			"api cache time-to-live (ms)");
-		addOption(opts, "d", LongName.INTERPRET_CALCULATE_DURATION,	"automatically fill in duration field of events");
-		addOption(opts, "r", LongName.INTERPRET_TIMETABLE_REGEX,	"regex that matches timetable events (can be blank)");
-		addOption(opts, "t", LongName.DOWNLOAD_TIMEOUT,			"timeout before retrying a download (ms)");
-		addOption(opts, "u", LongName.TEMPLATE_URL,			"template URL for downloading iCalendar data");
-		addOption(opts, "a", LongName.TEMPLATE_AGENT,			"template for the UserAgent header");
+		addOption(opts, false,	"h", LongName.HELP,				"display program help page");
+		addOption(opts, false,	"v", LongName.VERSION,				"display program version");
+		addOption(opts, true,	"p", LongName.API_PORT,				"port number to listen on");
+		addOption(opts, true,	"c", LongName.API_CACHE,			"api cache time-to-live (ms)");
+		addOption(opts, true,	"d", LongName.INTERPRET_CALCULATE_DURATION,	"automatically fill in duration field of events");
+		addOption(opts, true,	"r", LongName.INTERPRET_TIMETABLE_REGEX,	"regex that matches timetable events (can be blank)");
+		addOption(opts, true,	"t", LongName.DOWNLOAD_TIMEOUT,			"timeout before retrying a download (ms)");
+		addOption(opts, true,	"u", LongName.TEMPLATE_URL,			"template URL for downloading iCalendar data");
+		addOption(opts, true,	"a", LongName.TEMPLATE_AGENT,			"template for the UserAgent header");
 		return opts;
 	}
 
@@ -155,7 +155,7 @@ public final class Config {
 		formatter.setOptionComparator(null);
 		formatter.printHelp(
 			App.getTitle(),
-			"Parses events from an iCalendar source and serves them via HTTP as JSON objects",
+			"Downloads and parses iCalendar data from the web and then serves the parsed data as JSON via HTTP",
 			opts,
 			getVersion(),
 			false

@@ -16,10 +16,10 @@ public final class App {
 	 * @param args Command-line argument array
 	 */
 	public static void main(String[] args) {
-		log.info("Starting CalendarServer...");
-
 		// Generate configuration from input arguments
 		var config = new Config(args);
+
+		log.info("Starting CalendarServer...");
 
 		// Create the Cache which provides all calendar downloading/parsing/serializing/caching functionality
 		var cache = new Cache(config);

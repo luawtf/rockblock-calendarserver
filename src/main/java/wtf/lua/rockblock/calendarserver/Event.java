@@ -4,12 +4,12 @@ package wtf.lua.rockblock.calendarserver;
  * Event is a POJO that represents a calendar event
  */
 public final class Event {
-	/** Has this event been flagged as (possibly) being part of the timetable? */
+	/** Has this event been flagged as being part of the timetable? */
 	public boolean timetable;
 
-	/** Unique identifier, possibly null */
+	/** Unique event identifier, possibly null */
 	public String uid;
-	/** URL link, possibly null */
+	/** URL pointing to this event's origin, possibly null */
 	public String url;
 
 	/** Creation timestamp (milliseconds since 1970), possibly null */
@@ -21,7 +21,7 @@ public final class Event {
 	public Long start;
 	/** Event end timestamp (milliseconds since 1970), possibly null */
 	public Long end;
-	/** Event duration time (milliseconds), possibly null */
+	/** Event duration (milliseconds), possibly null */
 	public Long duration;
 
 	/** Short summary string, possibly null */

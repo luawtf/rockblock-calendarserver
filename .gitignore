@@ -12,5 +12,6 @@ buildNumber.properties
 
 .project
 .classpath
+.factorypath
 .settings
 .mvn
