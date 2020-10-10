@@ -3,14 +3,11 @@ root = true
 [*]
 charset = utf-8
 
-trim_trailing_whitespace = false
+trim_trailing_whitespace = true
 insert_final_newline = true
 
 end_of_line = lf
 
-indent_style = tab
-indent_size = 8
-tab_width = 8
-
-[*.{java,json,xml}]
-trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+tab_width = 2
