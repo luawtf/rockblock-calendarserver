@@ -1,8 +1,7 @@
 package wtf.lua.rockblock.calendarserver;
 
 /**
- * InvalidMonthException is thrown when {@link Month} is created with an invalid year or month,
- * or if {@link Month#parse} is called with an invalid expression.
+ * BadStatusException is thrown (inside of the CompletableFuture) when {@link Downloader} recieves a bad HTTP status in the response from the HTTP server (non-2XX status code).
  *
  * <p>
  * Copyright (C) 2020 Lua MacDougall
@@ -23,14 +22,14 @@ package wtf.lua.rockblock.calendarserver;
  *
  * @author Lua MacDougall &lt;luawhat@gmail.com&gt;
  */
-public final class InvalidMonthException extends Exception {
+public final class BadStatusException extends Exception {
   private static final long serialVersionUID = -1509745833318517920L;
 
   /**
-   * Create a new InvalidMonthException instance.
+   * Create a new BadStatusException instance.
    * @param message Error message to attach to this exception.
    */
-  public InvalidMonthException(String message) {
+  public BadStatusException(String message) {
     super(message);
   }
 }

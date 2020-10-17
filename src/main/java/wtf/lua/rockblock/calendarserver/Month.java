@@ -3,8 +3,8 @@ package wtf.lua.rockblock.calendarserver;
 import java.util.regex.Pattern;
 
 /**
- * {@link Month} represents a YYYY-MM calendar date. The specific representation
- * used is described in ISO 8601's "Calendar dates" section:
+ * Month represents a YYYY-MM calendar date.
+ * The specific representation used is described in ISO 8601's "Calendar dates" section:
  * <a href="https://wikipedia.org/wiki/ISO_8601#Calendar_dates">https://wikipedia.org/wiki/ISO_8601#Calendar_dates</a>
  *
  * <p>
@@ -36,12 +36,11 @@ public final class Month {
   public final String expression;
 
   /**
-   * Create a new {@link Month} instance with a given year + month. The
-   * expression string will be automatically generated.
+   * Create a new Month instance with a given year + month.
+   * The expression string will be automatically generated.
    * @param year  {@link Month#year}
    * @param month {@link Month#month}
-   * @throws InvalidMonthException If either "year" or "month" parameters are
-   * out of range.
+   * @throws InvalidMonthException If either "year" or "month" parameters are out of range.
    */
   public Month(int year, int month) throws InvalidMonthException {
     if (year < 0000 || year > 9999)
@@ -58,12 +57,10 @@ public final class Month {
   private static final Pattern expressionPattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)$");
 
   /**
-   * Parse a YYYY-MM date expression string and create a new {@link Month}
-   * instance with the resulting year + month.
+   * Parse a YYYY-MM date expression string and create a new Month instance with the resulting year + month.
    * @param expression Expression string to parse.
    * @return Month instance.
-   * @throws InvalidMonthException If "expression" is null/invalid or resulting
-   * year/month are out of range.
+   * @throws InvalidMonthException If "expression" is null/invalid or resulting year/month are out of range.
    */
   public static Month parse(String expression) throws InvalidMonthException {
     if (expression == null)

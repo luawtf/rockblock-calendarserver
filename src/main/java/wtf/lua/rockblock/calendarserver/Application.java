@@ -4,10 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link Application} provides the entrypoint for RockBlock CalendarServer that
- * loads the config file and starts the {@link Collater} + {@link Server}. It
- * also provides the {@link Application#getVersion} method to retrieve the
- * current package version.
+ * Application provides the entrypoint for RockBlock CalendarServer that loads the config file and starts the {@link Collater} + {@link Server}.
+ * It also provides the {@link Application#getVersion} method to retrieve the current package version.
  *
  * <p>
  * Copyright (C) 2020 Lua MacDougall
@@ -40,8 +38,7 @@ public final class Application {
   }
 
   /**
-   * Retrieve the version string (without "v" prefix) for our package
-   * {@link wtf.lua.rockblock.calendarserver}.
+   * Retrieve the version string (without "v" prefix) for our package "wtf.lua.rockblock.calendarserver}".
    * @return Package's version string
    */
   public static String getVersion() {

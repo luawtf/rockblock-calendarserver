@@ -1,9 +1,8 @@
 package wtf.lua.rockblock.calendarserver;
 
 /**
- * {@link Event} represents an immutable calendar event generated from input
- * iCalendar data. Note that any of {@link Event}'s fields could possibly be
- * null (except {@link Event#hidden} and {@link Event#categories}).
+ * Event represents an immutable calendar event generated from input iCalendar data.
+ * Note that any of Event's fields could possibly be "null" (except {@link Event#hidden} and {@link Event#categories}).
  *
  * <p>
  * Copyright (C) 2020 Lua MacDougall
@@ -26,9 +25,8 @@ package wtf.lua.rockblock.calendarserver;
  */
 public final class Event {
   /**
-   * Should this event be hidden / seperate from other events? This field will
-   * be "true" if {@link Event#summary summary} matches the event hiding regular
-   * expression.
+   * Should this event be hidden / seperate from other events?
+   * This field will be "true" if {@link Event#summary summary} matches the event hiding regular expression.
    */
   public final boolean hidden;
 
@@ -37,10 +35,7 @@ public final class Event {
   /** VEVENT URL field, may be "null" if not present. */
   public final String url;
 
-  /**
-   * VEVENT CREATED field as a milliseconds-since-1970 (UTC) timestamp. May be
-   * "null" if not present.
-   */
+  /** VEVENT CREATED field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long created;
   /**
    * VEVENT LAST-MODIFIED field as a milliseconds-since-1970 (UTC) timestamp.
@@ -48,20 +43,11 @@ public final class Event {
    */
   public final Long modified;
 
-  /**
-   * VEVENT DTSTART field as a milliseconds-since-1970 (UTC) timestamp. May be
-   * "null" if not present.
-   */
+  /** VEVENT DTSTART field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long start;
-  /**
-   * VEVENT DTEND field as a milliseconds-since-1970 (UTC) timestamp. May be
-   * "null" if not present.
-   */
+  /** VEVENT DTEND field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long end;
-  /**
-   * Difference between {@link Event#start start} and {@link Event#end end} in
-   * milliseconds. May be "null" if not present.
-   */
+  /** Difference between {@link Event#start start} and {@link Event#end end} in milliseconds. May be "null" if not present. */
   public final Long duration;
 
   /** VEVENT SUMMARY field, may be "null" if not present. */
@@ -69,17 +55,14 @@ public final class Event {
   /** VEVENT DESCRIPTION field, may be "null" if not present. */
   public final String description;
 
-  /**
-   * VEVENT CATEGORIES field as an array of category string. Will never be
-   * "null".
-   */
+  /** VEVENT CATEGORIES field as an array of category string. Will never be "null". */
   public final String[] categories;
 
   /** VEVENT LOCATION field, may be "null" if not present. */
   public final String location;
 
   /**
-   * Create a new {@link Event} instance.
+   * Create a new Event instance.
    * @param hidden      {@link Event#hidden}
    * @param uid         {@link Event#uid}
    * @param url         {@link Event#url}
