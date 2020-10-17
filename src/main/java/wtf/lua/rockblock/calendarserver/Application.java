@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 /**
  * {@link Application} provides the entrypoint for RockBlock CalendarServer that
  * loads the config file and starts the {@link Collater} + {@link Server}. It
- * also provides the {@link getVersion} method to retrieve the current package
- * version.
+ * also provides the {@link Application#getVersion} method to retrieve the
+ * current package version.
  *
  * <p>
  * Copyright (C) 2020 Lua MacDougall
