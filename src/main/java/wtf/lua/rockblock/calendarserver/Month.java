@@ -37,7 +37,7 @@ public final class Month {
 
   /**
    * Create a new Month instance with a given year + month.
-   * The expression string will be automatically generated.
+   * The date expression string will be automatically generated.
    * @param year  {@link Month#year}
    * @param month {@link Month#month}
    * @throws InvalidMonthException If either "year" or "month" parameters are out of range.
@@ -52,6 +52,14 @@ public final class Month {
     this.month = month;
 
     expression = String.format("%04d-%02d", year, month);
+  }
+
+  /**
+   * Convert this month into a YYYY-MM date expression string.
+   * @return {@link Month#expression}
+   */
+  public String toString() {
+    return expression;
   }
 
   private static final Pattern expressionPattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)$");
@@ -70,8 +78,8 @@ public final class Month {
     if (!matcher.matches())
       throw new InvalidMonthException("Expression does not match pattern");
 
-    var yearGroup = matcher.group(0);
-    var monthGroup = matcher.group(1);
+    var yearGroup = matcher.group(1);
+    var monthGroup = matcher.group(2);
 
     int year, month;
     try { year = Integer.parseInt(yearGroup); }
