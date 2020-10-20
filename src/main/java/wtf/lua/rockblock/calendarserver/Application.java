@@ -1,10 +1,12 @@
 package wtf.lua.rockblock.calendarserver;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Application provides the entrypoint for RockBlock CalendarServer that loads the config file and starts the {@link Collater} + {@link Server}.
+ * Application provides the entrypoint for RockBlock CalendarServer that loads the config file and starts the {@link CalendarJsonProvider} + {@link Server}.
  * It also provides the {@link Application#getVersion} method to retrieve the current package version.
  *
  * <p>
@@ -35,6 +37,17 @@ public final class Application {
    */
   public static void main(String[] args) {
     log.info("Starting RockBlock CalendarServer version v{}...", getVersion());
+
+    String configPath = "config.json";
+    Config config;
+
+    log.info("Reading config from {}", configPath);
+    try {
+      config = Config.readConfig(configPath);
+    } catch (IOException error) {
+      log.warn("Failed to read the config file:", error);
+      config = Config.defaultConfig;
+    }
   }
 
   /**
