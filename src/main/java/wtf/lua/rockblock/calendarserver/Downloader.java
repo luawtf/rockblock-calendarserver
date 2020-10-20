@@ -8,9 +8,12 @@ import java.net.http.HttpClient.Version;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Downloader is used to download files/resources from the internet over HTTP or HTTPS.
@@ -36,14 +39,15 @@ import java.util.concurrent.Executor;
  * @author Lua MacDougall &lt;luawhat@gmail.com&gt;
  */
 public final class Downloader {
+  private static Logger log = LoggerFactory.getLogger(Downloader.class);
+
   /** HTTP User-Agent header sent with every request. */
   public static final String userAgent = String.format(
     "RockBlock-CalendarServer / %s (https://github.com/luawtf/rockblock-calendarserver)",
     Application.getVersion()
   );
 
-  /** HttpClient instance used for requests. */
-  public final HttpClient httpClient;
+  private final HttpClient httpClient;
 
   /**
    * Create a new Downloader instance.
@@ -75,15 +79,21 @@ public final class Downloader {
       .timeout(Duration.ofMillis(retrieveTimeout))
       .build();
 
+    log.info("Download started for {}", uri);
+
     return httpClient
       .sendAsync(httpRequest, BodyHandlers.ofInputStream())
       .thenApply(response -> {
         var status = response.statusCode();
-        if (status / 100 != 2)
+        if (status / 100 != 2) {
+          log.error("Download failed (non-2XX status code) for {}", uri);
           throw new CompletionException(new BadStatusException(String.format(
             "Recieved error status code %d", status
           )));
-        return response.body();
+        } else {
+          log.info("Download completed for {}", uri);
+          return response.body();
+        }
       });
   }
 }
