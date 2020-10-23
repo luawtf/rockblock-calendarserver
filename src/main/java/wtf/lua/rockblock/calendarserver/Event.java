@@ -77,30 +77,30 @@ public final class Event {
    * @param location    {@link Event#location}
    */
   public Event(
-    boolean  hidden,
-    String   uid,
-    String   url,
-    Long     created,
-    Long     modified,
-    Long     start,
-    Long     end,
-    Long     duration,
-    String   summary,
-    String   description,
+    boolean hidden,
+    String uid,
+    String url,
+    Long created,
+    Long modified,
+    Long start,
+    Long end,
+    Long duration,
+    String summary,
+    String description,
     String[] categories,
-    String   location
+    String location
   ) {
-    this.hidden      = hidden;
-    this.uid         = uid;
-    this.url         = url;
-    this.created     = created;
-    this.modified    = modified;
-    this.start       = start;
-    this.end         = end;
-    this.duration    = duration;
-    this.summary     = summary;
+    this.hidden = hidden;
+    this.uid = uid;
+    this.url = url;
+    this.created = created;
+    this.modified = modified;
+    this.start = start;
+    this.end = end;
+    this.duration = duration;
+    this.summary = summary;
     this.description = description;
-    this.categories  = categories;
-    this.location    = location;
+    this.categories = categories;
+    this.location = location;
   }
 }

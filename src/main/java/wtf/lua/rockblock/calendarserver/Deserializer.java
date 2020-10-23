@@ -110,14 +110,14 @@ public final class Deserializer {
     var uid = getValue(vevent.getUid());
     var url = getValue(vevent.getUrl());
 
-    var created  = getValueTimestamp(vevent.getCreated());
+    var created = getValueTimestamp(vevent.getCreated());
     var modified = getValueTimestamp(vevent.getLastModified());
 
-    var start    = getValueTimestamp(vevent.getDateStart());
-    var end      = getValueTimestamp(vevent.getDateEnd());
+    var start = getValueTimestamp(vevent.getDateStart());
+    var end = getValueTimestamp(vevent.getDateEnd());
     var duration = start != null && end != null ? Math.max(end - start, 0) : null;
 
-    var summary     = getValue(vevent.getSummary());
+    var summary = getValue(vevent.getSummary());
     var description = getValue(vevent.getDescription());
 
     var location = getValue(vevent.getLocation());

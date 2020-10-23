@@ -48,13 +48,13 @@ public final class Config {
    * @param hiddenRegex             {@link Config#hiddenRegex}
    */
   public Config(
-    int     port,
+    int port,
     boolean cors,
-    long    cacheTTL,
-    long    downloadConnectTimeout,
-    long    downloadRetrieveTimeout,
-    String  urlTemplate,
-    String  hiddenRegex
+    long cacheTTL,
+    long downloadConnectTimeout,
+    long downloadRetrieveTimeout,
+    String urlTemplate,
+    String hiddenRegex
   ) {
     this.port = port;
     this.cors = cors;
