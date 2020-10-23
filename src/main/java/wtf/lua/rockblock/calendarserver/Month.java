@@ -55,11 +55,33 @@ public final class Month {
   }
 
   /**
-   * Convert this month into a YYYY-MM date expression string.
-   * @return {@link Month#expression}
+   * Convert this Month instance into a string.
+   * @return YYYY-MM date expression string.
    */
+  @Override
   public String toString() {
     return expression;
+  }
+
+  /**
+   * Compare an object "obj" to this Month instance.
+   * @return Is "obj" an instance of {@link Month} with {@link Month#year} and {@link Month#month} fields equal to our own?
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Month) {
+      var objMonth = (Month)obj;
+      return objMonth.year == year && objMonth.month == month;
+    } else return false;
+  }
+
+  /**
+   * Generate a hash code for this Month instance.
+   * @return YYYYMM date integer representation.
+   */
+  @Override
+  public int hashCode() {
+    return year * 100 + month;
   }
 
   private static final Pattern expressionPattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)$");
