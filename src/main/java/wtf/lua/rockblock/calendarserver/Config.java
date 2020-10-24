@@ -25,6 +25,10 @@ public final class Config {
   public final String urlTemplate;
   /** If an event's summary matches this regular expression, it will be marked as hidden. This field can also be "null". */
   public final String hiddenRegex;
+  /** Minimum acceptable year value (inclusive). If "yearMin" and "yearMax" are both < 0, all years from 0000 to 9999 are acceptable. */
+  public final int yearMin;
+  /** Maximum acceptable year value (inclusive). If "yearMin" and "yearMax" are both < 0, all years from 0000 to 9999 are acceptable. */
+  public final int yearMax;
 
   /** Config instance with default values. */
   public static final Config defaultConfig = new Config(
@@ -34,7 +38,9 @@ public final class Config {
     /* downloadConnectTimeout  */ 30_000,    // 30 seconds
     /* downloadRetrieveTimeout */ 30_000,    // 30 seconds
     /* urlTemplate             */ "https://demo.theeventscalendar.com/events/$$/?ical=1",
-    /* hiddenRegex             */ null
+    /* hiddenRegex             */ null,
+    /* yearMin                 */ -1,
+    /* yearMax                 */ -1
   );
 
   /**
@@ -46,6 +52,8 @@ public final class Config {
    * @param downloadRetrieveTimeout {@link Config#downloadRetrieveTimeout}
    * @param urlTemplate             {@link Config#urlTemplate}
    * @param hiddenRegex             {@link Config#hiddenRegex}
+   * @param yearMin                 {@link Config#yearMin}
+   * @param yearMax                 {@link Config#yearMax}
    */
   public Config(
     int port,
@@ -54,7 +62,9 @@ public final class Config {
     long downloadConnectTimeout,
     long downloadRetrieveTimeout,
     String urlTemplate,
-    String hiddenRegex
+    String hiddenRegex,
+    int yearMin,
+    int yearMax
   ) {
     this.port = port;
     this.cors = cors;
@@ -63,6 +73,8 @@ public final class Config {
     this.downloadRetrieveTimeout = downloadRetrieveTimeout;
     this.urlTemplate = urlTemplate;
     this.hiddenRegex = hiddenRegex;
+    this.yearMin = yearMin;
+    this.yearMax = yearMax;
   }
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -84,38 +96,48 @@ public final class Config {
     var object$downloadRetrieveTimeout = object.get("downloadRetrieveTimeout");
     var object$urlTemplate             = object.get("urlTemplate");
     var object$hiddenRegex             = object.get("hiddenRegex");
+    var object$yearMin                 = object.get("yearMin");
+    var object$yearMax                 = object.get("yearMax");
 
     return new Config(
       // "port"
-      object$port.isInt()
+      object$port != null && object$port.canConvertToInt()
         ? object$port.asInt()
         : defaultConfig.port,
       // "cors"
-      object$cors.isBoolean()
+      object$cors != null && object$cors.isBoolean()
         ? object$cors.asBoolean()
         : defaultConfig.cors,
       // "cacheTTL"
-      object$cacheTTL.isLong()
+      object$cacheTTL != null && object$cacheTTL.canConvertToLong()
         ? object$cacheTTL.asLong()
         : defaultConfig.cacheTTL,
       // "downloadConnectTimeout"
-      object$downloadConnectTimeout.isLong()
+      object$downloadConnectTimeout != null && object$downloadConnectTimeout.canConvertToLong()
         ? object$downloadConnectTimeout.asLong()
         : defaultConfig.downloadConnectTimeout,
       // "downloadRetrieveTimeout"
-      object$downloadRetrieveTimeout.isLong()
+      object$downloadRetrieveTimeout != null && object$downloadRetrieveTimeout.canConvertToLong()
         ? object$downloadRetrieveTimeout.asLong()
         : defaultConfig.downloadRetrieveTimeout,
       // "urlTemplate"
-      object$urlTemplate.isTextual()
+      object$urlTemplate != null && object$urlTemplate.isTextual()
         ? object$urlTemplate.asText()
         : defaultConfig.urlTemplate,
       // "hiddenRegex"
-      object$hiddenRegex.isTextual()
+      object$hiddenRegex != null && object$hiddenRegex.isTextual()
         ? object$hiddenRegex.asText()
-        : object$hiddenRegex.isNull()
+        : object$hiddenRegex != null && object$hiddenRegex.isNull()
           ? null
-          : defaultConfig.hiddenRegex
+          : defaultConfig.hiddenRegex,
+      // "yearMin"
+      object$yearMin != null && object$yearMin.canConvertToInt()
+        ? object$yearMin.asInt()
+        : defaultConfig.yearMin,
+      // "yearMax"
+      object$yearMax != null && object$yearMax.canConvertToInt()
+        ? object$yearMax.asInt()
+        : defaultConfig.yearMax
     );
   }
 }
