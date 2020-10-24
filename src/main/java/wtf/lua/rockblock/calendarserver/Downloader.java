@@ -1,16 +1,16 @@
 package wtf.lua.rockblock.calendarserver;
 
-import java.time.Duration;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Version;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.concurrent.Executor;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +39,15 @@ import org.slf4j.LoggerFactory;
  * @author Lua MacDougall &lt;luawhat@gmail.com&gt;
  */
 public final class Downloader {
-  private static Logger log = LoggerFactory.getLogger(Downloader.class);
+  private static final Logger log = LoggerFactory.getLogger(Downloader.class);
 
   /** HTTP User-Agent header sent with every request. */
   public static final String userAgent = String.format(
     "RockBlock-CalendarServer / %s (https://github.com/luawtf/rockblock-calendarserver)",
     Application.getVersion()
   );
+
+  private final Executor executor;
 
   private final HttpClient httpClient;
 
@@ -55,6 +57,7 @@ public final class Downloader {
    * @param connectTimeout How long (in milliseconds) to wait before timing out when connecting to a server.
    */
   public Downloader(Executor executor, long connectTimeout) {
+    this.executor = executor;
     httpClient = HttpClient
       .newBuilder()
       .version(Version.HTTP_1_1)
@@ -83,7 +86,7 @@ public final class Downloader {
 
     return httpClient
       .sendAsync(httpRequest, BodyHandlers.ofInputStream())
-      .thenApply(response -> {
+      .thenApplyAsync(response -> {
         var status = response.statusCode();
         if (status / 100 != 2) {
           log.error("Download failed (non-2XX status code) for {}", uri);
@@ -94,6 +97,6 @@ public final class Downloader {
           log.info("Download completed for {}", uri);
           return response.body();
         }
-      });
+      }, executor);
   }
 }
