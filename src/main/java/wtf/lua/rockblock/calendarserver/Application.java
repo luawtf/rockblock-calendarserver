@@ -1,9 +1,13 @@
 package wtf.lua.rockblock.calendarserver;
 
 import java.io.IOException;
+import java.util.concurrent.ForkJoinPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * Application provides the entrypoint for RockBlock CalendarServer that loads the config file and starts the {@link CalendarJsonProvider} + {@link Server}.
@@ -29,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author Lua MacDougall &lt;luawhat@gmail.com&gt;
  */
 public final class Application {
-  private static Logger log = LoggerFactory.getLogger(Application.class);
+  private static final Logger log = LoggerFactory.getLogger(Application.class);
 
   /**
    * Application entrypoint function, called by the JVM, don't touch this!
@@ -40,7 +44,6 @@ public final class Application {
 
     String configPath = "config.json";
     Config config;
-
     log.info("Reading config from {}", configPath);
     try {
       config = Config.readConfig(configPath);
@@ -48,10 +51,23 @@ public final class Application {
       log.warn("Failed to read the config file:", error);
       config = Config.defaultConfig;
     }
+
+    EventLoopGroup groupAccept = new NioEventLoopGroup(1);
+    EventLoopGroup groupServe = new NioEventLoopGroup();
+    try {
+      var calendarJsonProvider = new CalendarJsonProvider(ForkJoinPool.commonPool(), config);
+      var server = new Server(groupAccept, groupServe, config, calendarJsonProvider);
+      server.start();
+    } catch (Throwable error) {
+      log.error("Oops! Something went horribly wrong", error);
+    } finally {
+      groupAccept.shutdownGracefully();
+      groupServe.shutdownGracefully();
+    }
   }
 
   /**
-   * Retrieve the version string (without "v" prefix) for our package "wtf.lua.rockblock.calendarserver}".
+   * Retrieve the version string (without "v" prefix) for our package "wtf.lua.rockblock.calendarserver".
    * @return Package's version string
    */
   public static String getVersion() {
