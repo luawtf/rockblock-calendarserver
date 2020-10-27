@@ -26,7 +26,7 @@ package wtf.lua.rockblock.calendarserver;
 public final class Event {
   /**
    * Should this event be hidden / seperate from other events?
-   * This field will be "true" if {@link Event#summary summary} matches the event hiding regular expression.
+   * This field will be "true" if {@link Event#summary summary} matches the event hiding regular expression ("hiddenRegex" in the application configuration).
    */
   public final boolean hidden;
 
@@ -37,17 +37,14 @@ public final class Event {
 
   /** VEVENT CREATED field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long created;
-  /**
-   * VEVENT LAST-MODIFIED field as a milliseconds-since-1970 (UTC) timestamp.
-   * May be "null" if not present.
-   */
+  /** VEVENT LAST-MODIFIED field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long modified;
 
   /** VEVENT DTSTART field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long start;
   /** VEVENT DTEND field as a milliseconds-since-1970 (UTC) timestamp. May be "null" if not present. */
   public final Long end;
-  /** Difference between {@link Event#start start} and {@link Event#end end} in milliseconds. May be "null" if not present. */
+  /** Difference between {@link Event#start start} and {@link Event#end end} in milliseconds. May be "null" if "start" or "end" are not present. */
   public final Long duration;
 
   /** VEVENT SUMMARY field, may be "null" if not present. */

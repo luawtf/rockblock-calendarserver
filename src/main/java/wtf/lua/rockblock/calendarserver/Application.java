@@ -48,7 +48,7 @@ public final class Application {
     try {
       config = Config.readConfig(configPath);
     } catch (IOException error) {
-      log.warn("Failed to read the config file:", error);
+      log.warn("Failed to read the config file", error);
       config = Config.defaultConfig;
     }
 

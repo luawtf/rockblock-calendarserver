@@ -25,18 +25,18 @@ public final class Config {
   public final String urlTemplate;
   /** If an event's summary matches this regular expression, it will be marked as hidden. This field can also be "null". */
   public final String hiddenRegex;
-  /** Minimum acceptable year value (inclusive). If "yearMin" and "yearMax" are both < 0, all years from 0000 to 9999 are acceptable. */
+  /** Minimum acceptable year value (inclusive). If "yearMin" or "yearMax" are less than 0, all years from 0000 to 9999 are acceptable. */
   public final int yearMin;
-  /** Maximum acceptable year value (inclusive). If "yearMin" and "yearMax" are both < 0, all years from 0000 to 9999 are acceptable. */
+  /** Maximum acceptable year value (inclusive). If "yearMin" or "yearMax" are less than 0, all years from 0000 to 9999 are acceptable. */
   public final int yearMax;
 
   /** Config instance with default values. */
   public static final Config defaultConfig = new Config(
     /* port                    */ 2000,
     /* cors                    */ true,
-    /* cacheTTL                */ 1_800_000, // 30 minutes
-    /* downloadConnectTimeout  */ 30_000,    // 30 seconds
-    /* downloadRetrieveTimeout */ 30_000,    // 30 seconds
+    /* cacheTTL                */ 1800000, // 30 minutes
+    /* downloadConnectTimeout  */ 30000,   // 30 seconds
+    /* downloadRetrieveTimeout */ 30000,   // 30 seconds
     /* urlTemplate             */ "https://demo.theeventscalendar.com/events/$$/?ical=1",
     /* hiddenRegex             */ null,
     /* yearMin                 */ -1,
