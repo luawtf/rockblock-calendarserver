@@ -1,186 +1,143 @@
 package wtf.lua.rockblock.calendarserver;
 
-import org.apache.commons.cli.*;
-import org.slf4j.*;
+import java.io.File;
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * LongName provides an enumeration of all long-name option strings
- */
-enum LongName {
-	/** Long name for option --help */
-	HELP("help"),
-	/** Long name for option --version */
-	VERSION("version"),
-
-	/** Long name for option --port */
-	API_PORT("api-port"),
-	/** Long name for option --cache */
-	API_CACHE("api-cache"),
-
-	/** Long name for option --calculate-duration */
-	INTERPRET_CALCULATE_DURATION("calculate-duration"),
-	/** Long name for option --timetable-regex */
-	INTERPRET_TIMETABLE_REGEX("timetable-regex"),
-
-	/** Long name for option --download-timeout */
-	DOWNLOAD_TIMEOUT("download-timeout"),
-
-	/** Long name for option --template-url */
-	TEMPLATE_URL("template-url"),
-	/** Long name for option --template-agent */
-	TEMPLATE_AGENT("template-agent");
-
-	/** Entry's string value */
-	private final String value;
-
-	/**
-	 * Create a new LongName instance
-	 * @param value String value, used as the long name for this option
-	 */
-	private LongName(String value) {
-		this.value = value;
-	}
-
-	/**
-	 * Get this entry's value
-	 * @return String value of this enumeration entry
-	 */
-	public String toString() {
-		return value;
-	}
-}
-
-/**
- * Config provides various application configuration settings and command-line parsing tools for setting these options from the command line
+ * Config represents the application configuration. Instances of Config are
+ * usually created by reading the "config.json" file.
  */
 public final class Config {
-	private static final Logger log = LoggerFactory.getLogger(Config.class);
+  /** Port number to start the HTTP API server on. */
+  public final int port;
+  /** Send HTTP Cross-Origin Resource Sharing headers with each response? */
+  public final boolean cors;
+  /** How long should completed API responses be stored in the cache (in milliseconds)? */
+  public final long cacheTTL;
+  /** How long to wait before failing with a timeout exception while waiting to connect to the calendar source (in milliseconds)? */
+  public final long downloadConnectTimeout;
+  /** How long to wait before failing with a timeout exception while waiting for the download from the calendar source to complete (in milliseconds)? */
+  public final long downloadRetrieveTimeout;
+  /** Template for URL that points to the calendar source. "$$" (double dollar sign) will be replaced with the requested month (YYYY-MM). */
+  public final String urlTemplate;
+  /** If an event's summary matches this regular expression, it will be marked as hidden. This field can also be "null". */
+  public final String hiddenRegex;
+  /** Minimum acceptable year value (inclusive). If "yearMin" or "yearMax" are less than 0, all years from 0000 to 9999 are acceptable. */
+  public final int yearMin;
+  /** Maximum acceptable year value (inclusive). If "yearMin" or "yearMax" are less than 0, all years from 0000 to 9999 are acceptable. */
+  public final int yearMax;
 
-	/** Port number to listen on */
-	public int apiPort = 2000;
-	/** API cache time-to-live (in milliseconds) */
-	public long apiCacheTTL = 3600000; // 30 minutes
+  /** Config instance with default values. */
+  public static final Config defaultConfig = new Config(
+    /* port                    */ 2000,
+    /* cors                    */ true,
+    /* cacheTTL                */ 1800000, // 30 minutes
+    /* downloadConnectTimeout  */ 30000,   // 30 seconds
+    /* downloadRetrieveTimeout */ 30000,   // 30 seconds
+    /* urlTemplate             */ "https://demo.theeventscalendar.com/events/$$/?ical=1",
+    /* hiddenRegex             */ null,
+    /* yearMin                 */ -1,
+    /* yearMax                 */ -1
+  );
 
-	/** Automatically fill in Event.duration? */
-	public boolean interpretCalculateDuration = true;
-	/** Regular expression used for matching and flagging events as timetable events (leave empty for no flagging) */
-	public String interpretTimetableRegex = "[12](\\s*-\\s*|\\s+)[1234]{4}[xX]?";
+  /**
+   * Create a new Config instance.
+   * @param port                    {@link Config#port}
+   * @param cors                    {@link Config#cors}
+   * @param cacheTTL                {@link Config#cacheTTL}
+   * @param downloadConnectTimeout  {@link Config#downloadConnectTimeout}
+   * @param downloadRetrieveTimeout {@link Config#downloadRetrieveTimeout}
+   * @param urlTemplate             {@link Config#urlTemplate}
+   * @param hiddenRegex             {@link Config#hiddenRegex}
+   * @param yearMin                 {@link Config#yearMin}
+   * @param yearMax                 {@link Config#yearMax}
+   */
+  public Config(
+    int port,
+    boolean cors,
+    long cacheTTL,
+    long downloadConnectTimeout,
+    long downloadRetrieveTimeout,
+    String urlTemplate,
+    String hiddenRegex,
+    int yearMin,
+    int yearMax
+  ) {
+    this.port = port;
+    this.cors = cors;
+    this.cacheTTL = cacheTTL;
+    this.downloadConnectTimeout = downloadConnectTimeout;
+    this.downloadRetrieveTimeout = downloadRetrieveTimeout;
+    this.urlTemplate = urlTemplate;
+    this.hiddenRegex = hiddenRegex;
+    this.yearMin = yearMin;
+    this.yearMax = yearMax;
+  }
 
-	/** Timeout before retrying a download */
-	public long downloadTimeout = 30000; // 30 seconds
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	/** URL template to download iCalendar files from, '$' will be replaced with the requested month (ex "2020-12") */
-	public String templateURL = "https://westvancouverschools.ca/rockridge-secondary/events/$/?ical=1";
-	/** UserAgent template, sent as the User-Agent header when downloading iCalendar files, '$' will be replaced with the current CalendarServer version */
-	public String templateUserAgent = "RockBlock-CalendarServer/$ (https://github.com/luawtf/rockblock-calendarserver)";
+  /**
+   * Create a new instance of Config using data from a JSON file (usually "config.json").
+   * @param path Path to JSON file.
+   * @return Config instance.
+   * @throws IOException If an error occurs while reading from the file.
+   * @throws JsonProcessingException If an error occurs while deserializing the JSON.
+   */
+  public static Config readConfig(String path) throws IOException, JsonProcessingException {
+    var object = objectMapper.readTree(new File(path));
 
-	/**
-	 * Format templateURL with a month expression string
-	 * @param val Month expression string to format template with
-	 * @return Formatted URL string with provided month
-	 */
-	public String formatURL(String val) {
-		return templateURL.replace("$", val);
-	}
-	/**
-	 * Format templateUserAgent with the app's version
-	 * @param val Version string to format template with
-	 * @return Formatted User-Agent with provided version
-	 */
-	public String formatUserAgent(String val) {
-		return templateUserAgent.replace("$", val);
-	}
+    var object$port                    = object.get("port");
+    var object$cors                    = object.get("cors");
+    var object$cacheTTL                = object.get("cacheTTL");
+    var object$downloadConnectTimeout  = object.get("downloadConnectTimeout");
+    var object$downloadRetrieveTimeout = object.get("downloadRetrieveTimeout");
+    var object$urlTemplate             = object.get("urlTemplate");
+    var object$hiddenRegex             = object.get("hiddenRegex");
+    var object$yearMin                 = object.get("yearMin");
+    var object$yearMax                 = object.get("yearMax");
 
-	/**
-	 * Create a new Config instance with default field values
-	 */
-	public Config() {}
-
-	/**
-	 * Create a new Config instance using command-line arguments
-	 * NOTE: This will call System.exit(0) if --help/--version are passed
-	 * @param args Array of argument strings passed to this program
-	 */
-	public Config(String[] args) {
-		try {
-			Options opts = makeOptions();
-			CommandLineParser parser = new DefaultParser();
-			CommandLine cmd = parser.parse(opts, args);
-
-			// Handle --help and --version
-			if (getBoolean(cmd, LongName.HELP, false))
-				printHelp(opts);
-			if (getBoolean(cmd, LongName.VERSION, false))
-				printVersion();
-
-			// Update all config fields
-			apiPort				= getInt(cmd,		LongName.API_PORT,			apiPort);
-			apiCacheTTL			= getLong(cmd,		LongName.API_CACHE,			apiCacheTTL);
-			interpretCalculateDuration 	= getBoolean(cmd, 	LongName.INTERPRET_CALCULATE_DURATION,	interpretCalculateDuration);
-			interpretTimetableRegex		= getString(cmd,	LongName.INTERPRET_TIMETABLE_REGEX,	interpretTimetableRegex);
-			downloadTimeout			= getLong(cmd,		LongName.DOWNLOAD_TIMEOUT,		downloadTimeout);
-			templateURL			= getString(cmd,	LongName.TEMPLATE_URL,			templateURL);
-			templateUserAgent		= getString(cmd,	LongName.TEMPLATE_AGENT,		templateUserAgent);
-		} catch (ParseException e) {
-			log.warn("Failed to parse command-line arguments:", e);
-		}
-	}
-
-	private void addOption(Options opts, boolean hasParameter, String shortName, LongName longName, String description) {
-		opts.addOption(new Option(shortName, longName.toString(), hasParameter, description));
-	}
-	private Options makeOptions() {
-		Options opts = new Options();
-		addOption(opts, false,	"h", LongName.HELP,				"display program help page");
-		addOption(opts, false,	"v", LongName.VERSION,				"display program version");
-		addOption(opts, true,	"p", LongName.API_PORT,				"port number to listen on");
-		addOption(opts, true,	"c", LongName.API_CACHE,			"api cache time-to-live (ms)");
-		addOption(opts, true,	"d", LongName.INTERPRET_CALCULATE_DURATION,	"automatically fill in duration field of events");
-		addOption(opts, true,	"r", LongName.INTERPRET_TIMETABLE_REGEX,	"regex that matches timetable events (can be blank)");
-		addOption(opts, true,	"t", LongName.DOWNLOAD_TIMEOUT,			"timeout before retrying a download (ms)");
-		addOption(opts, true,	"u", LongName.TEMPLATE_URL,			"template URL for downloading iCalendar data");
-		addOption(opts, true,	"a", LongName.TEMPLATE_AGENT,			"template for the UserAgent header");
-		return opts;
-	}
-
-	private String getVersion() {
-		return String.format("%s v%s", App.getTitle(), App.getVersion());
-	}
-	private void printVersion() {
-		System.out.println(getVersion());
-		System.exit(0);
-	}
-	private void printHelp(Options opts) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setOptionComparator(null);
-		formatter.printHelp(
-			App.getTitle(),
-			"Downloads and parses iCalendar data from the web and then serves the parsed data as JSON via HTTP",
-			opts,
-			getVersion(),
-			false
-		);
-
-		System.exit(0);
-	}
-
-	private boolean getBoolean(CommandLine cmd, LongName optionName, boolean defaultValue) {
-		return cmd.hasOption(optionName.toString()) || defaultValue;
-	}
-	private String getString(CommandLine cmd, LongName optionName, String defaultValue) {
-		if (!getBoolean(cmd, optionName, false)) return defaultValue;
-
-		String value = cmd.getOptionValue(optionName.toString());
-		if (value == null || value.isEmpty()) return defaultValue;
-
-		return value;
-	}
-	private long getLong(CommandLine cmd, LongName optionName, long defaultValue) {
-		String value = getString(cmd, optionName, "");
-		try { return Long.parseLong(value); }
-		catch (NumberFormatException e) { return defaultValue; }
-	}
-	private int getInt(CommandLine cmd, LongName optionName, int defaultValue) {
-		return (int)getLong(cmd, optionName, (long)defaultValue);
-	}
+    return new Config(
+      // "port"
+      object$port != null && object$port.canConvertToInt()
+        ? object$port.asInt()
+        : defaultConfig.port,
+      // "cors"
+      object$cors != null && object$cors.isBoolean()
+        ? object$cors.asBoolean()
+        : defaultConfig.cors,
+      // "cacheTTL"
+      object$cacheTTL != null && object$cacheTTL.canConvertToLong()
+        ? object$cacheTTL.asLong()
+        : defaultConfig.cacheTTL,
+      // "downloadConnectTimeout"
+      object$downloadConnectTimeout != null && object$downloadConnectTimeout.canConvertToLong()
+        ? object$downloadConnectTimeout.asLong()
+        : defaultConfig.downloadConnectTimeout,
+      // "downloadRetrieveTimeout"
+      object$downloadRetrieveTimeout != null && object$downloadRetrieveTimeout.canConvertToLong()
+        ? object$downloadRetrieveTimeout.asLong()
+        : defaultConfig.downloadRetrieveTimeout,
+      // "urlTemplate"
+      object$urlTemplate != null && object$urlTemplate.isTextual()
+        ? object$urlTemplate.asText()
+        : defaultConfig.urlTemplate,
+      // "hiddenRegex"
+      object$hiddenRegex != null && object$hiddenRegex.isTextual()
+        ? object$hiddenRegex.asText()
+        : object$hiddenRegex != null && object$hiddenRegex.isNull()
+          ? null
+          : defaultConfig.hiddenRegex,
+      // "yearMin"
+      object$yearMin != null && object$yearMin.canConvertToInt()
+        ? object$yearMin.asInt()
+        : defaultConfig.yearMin,
+      // "yearMax"
+      object$yearMax != null && object$yearMax.canConvertToInt()
+        ? object$yearMax.asInt()
+        : defaultConfig.yearMax
+    );
+  }
 }

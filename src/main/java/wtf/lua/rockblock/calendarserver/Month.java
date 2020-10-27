@@ -1,74 +1,114 @@
 package wtf.lua.rockblock.calendarserver;
 
-import java.util.regex.*;
+import java.util.regex.Pattern;
 
 /**
- * InvalidMonthException is thrown by Month's methods when an exceptional case is encountered
- */
-final class InvalidMonthException extends Exception {
-	private static final long serialVersionUID = -1191398746339823172L;
-
-	/**
-	 * Create a new InvalidMonthException instance with a message
-	 * @param message Reason why the month is invalid
-	 */
-	public InvalidMonthException(String message) {
-		super(message);
-	}
-}
-
-/**
- * Month provides a container for a year-month date with validation and string parsing for month expressions (ex "2020-08")
+ * Month represents a YYYY-MM calendar date.
+ * The specific representation used is described in ISO 8601's "Calendar dates" section:
+ * <a href="https://wikipedia.org/wiki/ISO_8601#Calendar_dates">https://wikipedia.org/wiki/ISO_8601#Calendar_dates</a>
+ *
+ * <p>
+ * Copyright (C) 2020 Lua MacDougall
+ * <br/><br/>
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * <br/><br/>
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ * <br/><br/>
+ * You should have received a copy of the GNU General Public License along with
+ * this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
+ * </p>
+ *
+ * @author Lua MacDougall &lt;luawhat@gmail.com&gt;
  */
 public final class Month {
-	/** Year number 1970-2100 (ex 2020) */
-	public final int year;
-	/** Month number 1-12 (ex 8) */
-	public final int month;
+  /** Four-digit year piece, 0000 through 9999 (inclusive). */
+  public final int year;
+  /** Two-digit month piece, 01 through 12 (inclusive). */
+  public final int month;
 
-	/** Month expression string (ex "2020-08") */
-	public final String value;
+  /** YYYY-MM date expression string, EX: "2020-02". */
+  public final String expression;
 
-	/**
-	 * Create a new Month instance with year and month integers
-	 * @param year Year number (1920-2100)
-	 * @param month Month number (1-12)
-	 * @throws InvalidMonthException If `year` or `month` is out-of-bounds
-	 */
-	public Month(int year, int month) throws InvalidMonthException {
-		if (year < 1970 || year > 2100)
-			throw new InvalidMonthException(String.format("Invalid year %d", year));
-		if (month < 1 || month > 12)
-			throw new InvalidMonthException(String.format("Invalid month %d", month));
+  /**
+   * Create a new Month instance with a given year + month.
+   * The date expression string will be automatically generated.
+   * @param year  {@link Month#year}
+   * @param month {@link Month#month}
+   * @throws InvalidMonthException If either "year" or "month" parameters are out of range.
+   */
+  public Month(int year, int month) throws InvalidMonthException {
+    if (year < 0000 || year > 9999)
+      throw new InvalidMonthException(String.format("Invalid year %d", year));
+    if (month < 01 || month > 12)
+      throw new InvalidMonthException(String.format("Invalid month %d", month));
 
-		this.year = year;
-		this.month = month;
+    this.year = year;
+    this.month = month;
 
-		value = String.format("%04d-%02d", year, month);
-	}
+    expression = String.format("%04d-%02d", year, month);
+  }
 
-	private static final Pattern expressionPattern = Pattern.compile("^\\d\\d\\d\\d-\\d\\d$");
+  /**
+   * Convert this Month instance into a string.
+   * @return YYYY-MM date expression string.
+   */
+  @Override
+  public String toString() {
+    return expression;
+  }
 
-	/**
-	 * Parse a month expression string and generate a new Month instance
-	 * @param expression Month expression string (ex "2020-08")
-	 * @return New Month instance with parsed year/month values
-	 * @throws InvalidMonthException If `expression` is invalid or out-of-bounds
-	 */
-	public static Month parse(String expression) throws InvalidMonthException {
-		if (expression == null)
-			throw new InvalidMonthException("Expression is null");
-		if (!expressionPattern.matcher(expression).matches())
-			throw new InvalidMonthException("Expression does not match pattern");
+  /**
+   * Compare an object "obj" to this Month instance.
+   * @return Is "obj" an instance of {@link Month} with {@link Month#year} and {@link Month#month} fields equal to our own?
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Month) {
+      var objMonth = (Month)obj;
+      return objMonth.year == year && objMonth.month == month;
+    } else return false;
+  }
 
-		String[] args = expression.split("-");
+  /**
+   * Generate a hash code for this Month instance.
+   * @return YYYYMM date integer representation.
+   */
+  @Override
+  public int hashCode() {
+    return year * 100 + month;
+  }
 
-		int year, month;
-		try { year = Integer.parseInt(args[0]); }
-		catch (NumberFormatException e) { year = 0; }
-		try { month = Integer.parseInt(args[1]); }
-		catch (NumberFormatException e) { month = 1; }
+  private static final Pattern expressionPattern = Pattern.compile("^(\\d\\d\\d\\d)-(\\d\\d)$");
 
-		return new Month(year, month);
-	}
+  /**
+   * Parse a YYYY-MM date expression string and create a new Month instance with the resulting year + month.
+   * @param expression Expression string to parse.
+   * @return Month instance.
+   * @throws InvalidMonthException If "expression" is null/invalid or resulting year/month are out of range.
+   */
+  public static Month parse(String expression) throws InvalidMonthException {
+    if (expression == null)
+      throw new InvalidMonthException("Expression is null");
+
+    var matcher = expressionPattern.matcher(expression);
+    if (!matcher.matches())
+      throw new InvalidMonthException("Expression does not match pattern");
+
+    var yearGroup = matcher.group(1);
+    var monthGroup = matcher.group(2);
+
+    int year, month;
+    try { year = Integer.parseInt(yearGroup); }
+    catch (NumberFormatException e) { year = 0000; }
+    try { month = Integer.parseInt(monthGroup); }
+    catch (NumberFormatException e) { month = 01; }
+
+    return new Month(year, month);
+  }
 }
