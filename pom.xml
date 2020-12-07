@@ -7,7 +7,7 @@
 
   <groupId>wtf.lua.rockblock</groupId>
   <artifactId>calendarserver</artifactId>
-  <version>2.0</version>
+  <version>2.1</version>
 
 
   <properties>

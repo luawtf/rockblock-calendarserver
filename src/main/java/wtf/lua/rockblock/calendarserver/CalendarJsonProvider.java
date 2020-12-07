@@ -61,7 +61,7 @@ public final class CalendarJsonProvider {
   /**
    * PendingCacheEntry represents a pending operation to generate a calendar month data JSON body.
    */
-  private static class PendingCacheEntry implements CacheEntry {
+  private static final class PendingCacheEntry implements CacheEntry {
     private final CompletableFuture<byte[]> promise;
 
     /**
@@ -72,10 +72,12 @@ public final class CalendarJsonProvider {
       this.promise = promise;
     }
 
+    @Override
     public boolean isValid() {
       return true;
     }
 
+    @Override
     public CompletableFuture<byte[]> getBody() {
       return promise;
     }
@@ -83,7 +85,7 @@ public final class CalendarJsonProvider {
   /**
    * CompletedCacheEntry represents a cached calendar month data JSON body that will eventually expire.
    */
-  private static class CompletedCacheEntry implements CacheEntry {
+  private static final class CompletedCacheEntry implements CacheEntry {
     private final long expires;
     private final byte[] body;
 
@@ -97,12 +99,42 @@ public final class CalendarJsonProvider {
       expires = System.currentTimeMillis() + ttl;
     }
 
+    @Override
     public boolean isValid() {
       return expires >= System.currentTimeMillis();
     }
 
+    @Override
     public CompletableFuture<byte[]> getBody() {
       return CompletableFuture.completedFuture(body);
+    }
+  }
+  /**
+   * UpdatingCacheEntry is a container that contains a cache entry that will be replaced and the new replacement cache entry.
+   * It is used to implement non-blocking cache updates, until the new entry has completed, the old entry's body will be returned.
+   */
+  private static final class UpdatingCacheEntry implements CacheEntry {
+    private final CacheEntry oldEntry, newEntry;
+
+    /**
+     * Create a new UpdatingCacheEntry instance.
+     * @param oldEntry The original cache entry that is being replaced.
+     * @param newEntry The new cache entry.
+     */
+    public UpdatingCacheEntry(CacheEntry oldEntry, CacheEntry newEntry) {
+      this.oldEntry = oldEntry;
+      this.newEntry = newEntry;
+    }
+
+    @Override
+    public boolean isValid() {
+      return oldEntry.isValid() || newEntry.isValid();
+    }
+
+    @Override
+    public CompletableFuture<byte[]> getBody() {
+      var newBody = newEntry.getBody();
+      return newBody.isDone() ? newBody : oldEntry.getBody();
     }
   }
 
@@ -173,17 +205,19 @@ public final class CalendarJsonProvider {
     cacheLock.writeLock().lock(); try {
 
       // Check if there is already an pending update
-      var originalEntry = cacheMap.get(month);
-      if (originalEntry instanceof PendingCacheEntry) {
+      var oldEntry = cacheMap.get(month);
+      if (
+        oldEntry instanceof PendingCacheEntry ||
+        oldEntry instanceof UpdatingCacheEntry
+      ) {
         // Return the pending update promise
-        return originalEntry.getBody();
+        return oldEntry.getBody();
       }
 
       log.info("Update for {} started", month);
 
-      // We're good to start working! Begin generating the body and write the pending cache entry
+      // We're good to start working! Begin generating the body
       var promise = generateBody(month);
-      cacheMap.put(month, new PendingCacheEntry(promise));
 
       // Once we're done generating the body ...
       promise.handleAsync((body, error) -> {
@@ -201,8 +235,20 @@ public final class CalendarJsonProvider {
         return null;
       }, executor);
 
-      // Return the new pending update promise
-      return promise;
+      // Create new cache entries
+      var newEntry = new PendingCacheEntry(promise);
+      // If we are creating a new cache entry, then use the PendingCacheEntry directly
+      // However, if we are replacing an existing cache entry then use UpdatingCacheEntry
+      var updatingEntry =
+        oldEntry != null
+          ? new UpdatingCacheEntry(oldEntry, newEntry)
+          : newEntry;
+
+      // Insert the new entry into the cache
+      cacheMap.put(month, updatingEntry);
+
+      // Return the updated entry's body
+      return updatingEntry.getBody();
     } finally { cacheLock.writeLock().unlock(); }
   }
 
